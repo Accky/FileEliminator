@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using IniParser;
 using IniParser.Model;
+using Microsoft.VisualBasic.FileIO;
 
 namespace FileEliminator
 {
@@ -21,6 +22,7 @@ namespace FileEliminator
         public class Parameters
         {
             public string Path = "";
+            public bool isDelete = false;
             public List<string> Rules = new List<string>();
         }
         
@@ -122,8 +124,8 @@ namespace FileEliminator
             List<string> pathList = new List<string>();
 
             foreach (var rule in parameter.Rules) {
-                string[] files = Directory.GetFiles(parameter.Path, rule, SearchOption.AllDirectories);
-                string[] folders = System.IO.Directory.GetDirectories(parameter.Path, rule, SearchOption.AllDirectories);
+                string[] files = Directory.GetFiles(parameter.Path, rule, System.IO.SearchOption.AllDirectories);
+                string[] folders = System.IO.Directory.GetDirectories(parameter.Path, rule, System.IO.SearchOption.AllDirectories);
                 pathList.AddRange(files);
                 pathList.AddRange(folders);
             }
@@ -136,9 +138,12 @@ namespace FileEliminator
 
         private void button5_Click(object sender, EventArgs e)
         {
+            parameter.isDelete = radioButton2.Checked;
+
             foreach (string path in listBox2.Items) {
                 if (File.Exists(path)) {
-                    File.Delete(path);
+                    //File.Delete(path);
+                    DeleteFile(path);
                 }
                 else if (Directory.Exists(path)) {
                     DeleteAll(path);
@@ -155,21 +160,39 @@ namespace FileEliminator
                 return;
             }
 
-            //ディレクトリ以外の全ファイルを削除
-            string[] filePaths = Directory.GetFiles(targetDirectoryPath);
-            foreach (string filePath in filePaths) {
-                File.SetAttributes(filePath, FileAttributes.Normal);
-                File.Delete(filePath);
-            }
+            //ゴミ箱に入れるか、削除するか
+            if (parameter.isDelete) {
+                //ディレクトリ以外の全ファイルを削除
+                string[] filePaths = Directory.GetFiles(targetDirectoryPath);
+                foreach (string filePath in filePaths) {
+                    File.SetAttributes(filePath, FileAttributes.Normal);
+                    //File.Delete(filePath);
+                    DeleteFile(filePath);
+                }
 
-            //ディレクトリの中のディレクトリも再帰的に削除
-            string[] directoryPaths = Directory.GetDirectories(targetDirectoryPath);
-            foreach (string directoryPath in directoryPaths) {
-                DeleteAll(directoryPath);
-            }
+                //ディレクトリの中のディレクトリも再帰的に削除
+                string[] directoryPaths = Directory.GetDirectories(targetDirectoryPath);
+                foreach (string directoryPath in directoryPaths) {
+                    DeleteAll(directoryPath);
+                }
 
-            //中が空になったらディレクトリ自身も削除
-            Directory.Delete(targetDirectoryPath, false);
+                //中が空になったらディレクトリ自身も削除
+                Directory.Delete(targetDirectoryPath, false);
+            }
+            else {
+                //フォルダごとゴミ箱に
+                FileSystem.DeleteDirectory(targetDirectoryPath, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+            }
+        }
+
+        private void DeleteFile(string path)
+        {
+            if (parameter.isDelete) {
+                File.Delete(path);
+            }
+            else {
+                FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+            }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

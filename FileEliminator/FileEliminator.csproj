@@ -54,6 +54,7 @@
     <Reference Include="INIFileParserDotNetCore, Version=2.5.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\INIFileParserDotNetCore.2.5.2\lib\net40\INIFileParserDotNetCore.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
